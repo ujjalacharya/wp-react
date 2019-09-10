@@ -1,2 +1,2 @@
 export const JWT_SECRET = 'secret';
-export const API = 'localhost:34567'
+export const API = 'http://localhost:34567'
