@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Navbar from "./Navbar";
 import moment from "moment";
+import { API } from "../../Utils/config";
 
 import {
   getAllPosts,
@@ -147,7 +148,7 @@ class Posts extends Component {
                       }}
                     ></td>
                     <td>{moment(post.date).format("MMMM Do, YYYY")}</td>
-                    <td>
+                    <td style={{ display: "flex" }}>
                       <a
                         href="#editEmployeeModal"
                         className="edit"
@@ -175,6 +176,14 @@ class Posts extends Component {
                         >
                           &#xE872;
                         </i>
+                      </a>
+                      <a
+                        href={`${API}/${post.slug}`}
+                        target="_blank"
+                        className="view"
+                        data-toggle="modal"
+                      >
+                        <i class="material-icons">remove_red_eye</i>
                       </a>
                     </td>
                   </tr>
