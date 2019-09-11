@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import Navbar from "./Navbar";
 import moment from "moment";
 import { API } from "../../Utils/config";
+import CKEditor from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 import {
   getAllPosts,
@@ -38,6 +40,7 @@ class Posts extends Component {
         var theday = now.getFullYear() + "-" + month + "-" + day;
 
         post.date = theday;
+        return post;
       });
 
       this.setState({ posts: data.data });
@@ -180,10 +183,11 @@ class Posts extends Component {
                       <a
                         href={`${API}/${post.slug}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="view"
                         data-toggle="modal"
                       >
-                        <i class="material-icons">remove_red_eye</i>
+                        <i className="material-icons">remove_red_eye</i>
                       </a>
                     </td>
                   </tr>
@@ -270,12 +274,21 @@ class Posts extends Component {
                   </div>
                   <div className="form-group">
                     <label>Post</label>
-                    <textarea
+                    {/* <textarea
                       className="form-control"
                       required
                       name="content"
                       onChange={this.handleChange}
-                    ></textarea>
+                    ></textarea> */}
+
+                    <CKEditor
+                      editor={ClassicEditor}
+                      onChange={(event, editor) => {
+                        const data = editor.getData();
+
+                        this.setState({ content: data });
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -316,10 +329,6 @@ class Posts extends Component {
                     <input
                       type="text"
                       className="form-control"
-                      value={
-                        this.state.activeModalId &&
-                        this.state.posts[this.state.index].title.rendered
-                      }
                       value={this.state.title}
                       name="title"
                       onChange={this.handleChange}
@@ -338,12 +347,15 @@ class Posts extends Component {
                   </div>
                   <div className="form-group">
                     <label>Post</label>
-                    <textarea
-                      className="form-control"
-                      value={this.state.content}
-                      name="content"
-                      onChange={this.handleChange}
-                      required
+
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={this.state.content}
+                      onChange={(event, editor) => {
+                        const data = editor.getData();
+
+                        this.setState({ content: data });
+                      }}
                     />
                   </div>
                   <div className="form-group">

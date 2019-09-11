@@ -217,3 +217,11 @@ table.table .avatar {
 .modal form label {
     font-weight: normal;
 }	
+
+.modal .modal-content {
+    width: 60rem;
+}
+
+.ck-editor__editable_inline {
+    min-height: calc(100vh - 600px);
+}
