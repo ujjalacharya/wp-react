@@ -52,3 +52,5 @@ export const signout = () => {
 export const getAllPosts = () => axios.get("/wp-json/wp/v2/posts");
 
 export const publishPost = body => axios.post("/wp-json/wp/v2/posts", body);
+
+export const deletePost = id => axios.delete("/wp-json/wp/v2/posts/"+id);

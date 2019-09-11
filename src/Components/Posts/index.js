@@ -2,7 +2,12 @@ import React, { Component } from "react";
 import Navbar from "./Navbar";
 import moment from "moment";
 
-import { getAllPosts, isAuthenticated, publishPost } from "../../Utils/Requests";
+import {
+  getAllPosts,
+  isAuthenticated,
+  publishPost,
+  deletePost
+} from "../../Utils/Requests";
 
 class Posts extends Component {
   state = {
@@ -41,19 +46,33 @@ class Posts extends Component {
   handlePostSubmit = async e => {
     e.preventDefault();
 
-    const body = {title: this.state.title, status: this.state.status, content: this.state.content}
+    const body = {
+      title: this.state.title,
+      status: this.state.status,
+      content: this.state.content
+    };
 
     const response = await publishPost(body);
 
-    console.log(response)
+    console.log(response);
 
-    if(response.status === 201){
+    if (response.status === 201) {
       window.location.reload();
     }
   };
 
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
+  };
+
+  handleDeletePost = async e => {
+    e.preventDefault();
+
+    const response = await deletePost(this.state.activeModalId);
+
+    if (response.status === 200) {
+      window.location.reload();
+    }
   };
 
   render() {
@@ -146,6 +165,7 @@ class Posts extends Component {
                         href="#deleteEmployeeModal"
                         className="delete"
                         data-toggle="modal"
+                        onClick={this.handleActiveModal(post.id, i)}
                       >
                         <i
                           className="material-icons"
@@ -344,7 +364,7 @@ class Posts extends Component {
         <div id="deleteEmployeeModal" className="modal fade">
           <div className="modal-dialog">
             <div className="modal-content">
-              <form>
+              <form onSubmit={this.handleDeletePost}>
                 <div className="modal-header">
                   <h4 className="modal-title">Delete Employee</h4>
                   <button
