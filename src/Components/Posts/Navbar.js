@@ -10,7 +10,7 @@ const Navbar = ({ history }) => {
   };
   return (
     <nav className="navbar navbar-default navbar-fixed-top">
-      <div className="container">
+      <div className="navbar-right" style={{marginRight: '5rem'}}>
         <button
           type="button"
           className="btn btn-default navbar-btn"

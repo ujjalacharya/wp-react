@@ -46,3 +46,7 @@ export const signout = () => {
     return true;
   }
 };
+
+// Wordpress API requests 
+
+export const getAllPosts = () => axios.get("/wp-json/wp/v2/posts");
