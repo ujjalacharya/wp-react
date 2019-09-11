@@ -2,26 +2,61 @@ import React, { Component } from "react";
 import Navbar from "./Navbar";
 import moment from "moment";
 
-import { getAllPosts, isAuthenticated } from "../../Utils/Requests";
+import { getAllPosts, isAuthenticated, publishPost } from "../../Utils/Requests";
 
 class Posts extends Component {
   state = {
     posts: [],
-    email: isAuthenticated().user_email
+    email: isAuthenticated().user_email,
+    activeModalId: false,
+    index: 0,
+    title: "",
+    status: "publish",
+    content: ""
   };
 
   async componentDidMount() {
     const data = await getAllPosts();
 
-    console.log(data.data);
-
     if (data && data.status === 200) {
+      data.data.map(post => {
+        var now = new Date(post.date);
+        var month = now.getMonth() + 1;
+        var day = now.getDate();
+        if (month < 10) month = "0" + month;
+        if (day < 10) day = "0" + day;
+        var theday = now.getFullYear() + "-" + month + "-" + day;
+
+        post.date = theday;
+      });
+
       this.setState({ posts: data.data });
     }
   }
 
-  render() {
+  handleActiveModal = (modalId, index) => e => {
+    this.setState({ activeModalId: modalId, index });
+  };
 
+  handlePostSubmit = async e => {
+    e.preventDefault();
+
+    const body = {title: this.state.title, status: this.state.status, content: this.state.content}
+
+    const response = await publishPost(body);
+
+    console.log(response)
+
+    if(response.status === 201){
+      window.location.reload();
+    }
+  };
+
+  handleChange = e => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+
+  render() {
     return (
       <>
         <Navbar />
@@ -41,7 +76,7 @@ class Posts extends Component {
                     data-toggle="modal"
                   >
                     <i className="material-icons">&#xE147;</i>{" "}
-                    <span>Add New Employee</span>
+                    <span>Add New Post</span>
                   </a>
                   <a
                     href="#deleteEmployeeModal"
@@ -86,13 +121,18 @@ class Posts extends Component {
                     </td>
                     <td>{post.title.rendered}</td>
                     <td>{this.state.email}</td>
-                    <td dangerouslySetInnerHTML={{ __html: post.content.rendered }} ></td>
+                    <td
+                      dangerouslySetInnerHTML={{
+                        __html: post.content.rendered
+                      }}
+                    ></td>
                     <td>{moment(post.date).format("MMMM Do, YYYY")}</td>
                     <td>
                       <a
                         href="#editEmployeeModal"
                         className="edit"
                         data-toggle="modal"
+                        onClick={this.handleActiveModal(post.id, i)}
                       >
                         <i
                           className="material-icons"
@@ -120,7 +160,7 @@ class Posts extends Component {
                 ))}
               </tbody>
             </table>
-            <div className="clearfix">
+            {/* <div className="clearfix">
               <div className="hint-text">
                 Showing <b>5</b> out of <b>25</b> entries
               </div>
@@ -159,15 +199,15 @@ class Posts extends Component {
                   </a>
                 </li>
               </ul>
-            </div>
+            </div>*/}
           </div>
         </div>
-        <div id="addEmployeeModal" className="modal fade">
+        <div id="addEmployeeModal" className="modal fade addPost">
           <div className="modal-dialog">
             <div className="modal-content">
-              <form>
+              <form onSubmit={this.handlePostSubmit}>
                 <div className="modal-header">
-                  <h4 className="modal-title">Add Employee</h4>
+                  <h4 className="modal-title">Add Post</h4>
                   <button
                     type="button"
                     className="close"
@@ -179,20 +219,33 @@ class Posts extends Component {
                 </div>
                 <div className="modal-body">
                   <div className="form-group">
-                    <label>Name</label>
-                    <input type="text" className="form-control" required />
+                    <label>Title</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      required
+                      name="title"
+                      onChange={this.handleChange}
+                    />
                   </div>
                   <div className="form-group">
                     <label>Email</label>
-                    <input type="email" className="form-control" required />
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={this.state.email && this.state.email}
+                      required
+                      disabled
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Address</label>
-                    <textarea className="form-control" required></textarea>
-                  </div>
-                  <div className="form-group">
-                    <label>Phone</label>
-                    <input type="text" className="form-control" required />
+                    <label>Post</label>
+                    <textarea
+                      className="form-control"
+                      required
+                      name="content"
+                      onChange={this.handleChange}
+                    ></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -217,7 +270,7 @@ class Posts extends Component {
             <div className="modal-content">
               <form>
                 <div className="modal-header">
-                  <h4 className="modal-title">Edit Employee</h4>
+                  <h4 className="modal-title">Edit Post</h4>
                   <button
                     type="button"
                     className="close"
@@ -229,20 +282,50 @@ class Posts extends Component {
                 </div>
                 <div className="modal-body">
                   <div className="form-group">
-                    <label>Name</label>
-                    <input type="text" className="form-control" required />
+                    <label>Title</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={
+                        this.state.activeModalId &&
+                        this.state.posts[this.state.index].title.rendered
+                      }
+                      required
+                    />
                   </div>
                   <div className="form-group">
                     <label>Email</label>
-                    <input type="email" className="form-control" required />
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={this.state.activeModalId && this.state.email}
+                      disabled
+                      required
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Address</label>
-                    <textarea className="form-control" required></textarea>
+                    <label>Post</label>
+                    <textarea
+                      className="form-control"
+                      value={
+                        this.state.activeModalId &&
+                        this.state.posts[this.state.index].content.rendered
+                      }
+                      required
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Phone</label>
-                    <input type="text" className="form-control" required />
+                    <label>Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      disabled
+                      value={
+                        this.state.activeModalId &&
+                        this.state.posts[this.state.index].date
+                      }
+                      required
+                    />
                   </div>
                 </div>
                 <div className="modal-footer">
