@@ -6,19 +6,23 @@ import {
   getAllPosts,
   isAuthenticated,
   publishPost,
+  updatePost,
   deletePost
 } from "../../Utils/Requests";
 
 class Posts extends Component {
-  state = {
-    posts: [],
-    email: isAuthenticated().user_email,
-    activeModalId: false,
-    index: 0,
-    title: "",
-    status: "publish",
-    content: ""
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      posts: [],
+      email: isAuthenticated().user_email,
+      activeModalId: false,
+      index: 0,
+      title: "",
+      status: "publish",
+      content: ""
+    };
+  }
 
   async componentDidMount() {
     const data = await getAllPosts();
@@ -40,7 +44,16 @@ class Posts extends Component {
   }
 
   handleActiveModal = (modalId, index) => e => {
-    this.setState({ activeModalId: modalId, index });
+    this.setState({
+      activeModalId: modalId,
+      index,
+      title: this.state.posts[index].title.rendered,
+      content: this.state.posts[index].content.rendered
+    });
+  };
+
+  handleChange = e => {
+    this.setState({ [e.target.name]: e.target.value });
   };
 
   handlePostSubmit = async e => {
@@ -54,15 +67,25 @@ class Posts extends Component {
 
     const response = await publishPost(body);
 
-    console.log(response);
-
     if (response.status === 201) {
       window.location.reload();
     }
   };
 
-  handleChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
+  handlePostEdit = async e => {
+    e.preventDefault();
+
+    const body = {
+      title: this.state.title,
+      status: this.state.status,
+      content: this.state.content
+    };
+
+    const response = await updatePost(this.state.activeModalId, body);
+
+    if (response.status === 200) {
+      window.location.reload();
+    }
   };
 
   handleDeletePost = async e => {
@@ -76,6 +99,7 @@ class Posts extends Component {
   };
 
   render() {
+    console.log(this.state);
     return (
       <>
         <Navbar />
@@ -97,26 +121,13 @@ class Posts extends Component {
                     <i className="material-icons">&#xE147;</i>{" "}
                     <span>Add New Post</span>
                   </a>
-                  <a
-                    href="#deleteEmployeeModal"
-                    className="btn btn-danger"
-                    data-toggle="modal"
-                  >
-                    <i className="material-icons">&#xE15C;</i>{" "}
-                    <span>Delete</span>
-                  </a>
                 </div>
               </div>
             </div>
             <table className="table table-striped table-hover">
               <thead>
                 <tr>
-                  <th>
-                    <span className="custom-checkbox">
-                      <input type="checkbox" id="selectAll" />
-                      <label htmlFor="selectAll"></label>
-                    </span>
-                  </th>
+                  <th>I.D</th>
                   <th>Title</th>
                   <th>Email</th>
                   <th>Post</th>
@@ -127,17 +138,7 @@ class Posts extends Component {
               <tbody>
                 {this.state.posts.map((post, i) => (
                   <tr key={i}>
-                    <td>
-                      <span className="custom-checkbox">
-                        <input
-                          type="checkbox"
-                          id="checkbox1"
-                          name="options[]"
-                          value="1"
-                        />
-                        <label htmlFor="checkbox1"></label>
-                      </span>
-                    </td>
+                    <td>{post.id}</td>
                     <td>{post.title.rendered}</td>
                     <td>{this.state.email}</td>
                     <td
@@ -288,7 +289,7 @@ class Posts extends Component {
         <div id="editEmployeeModal" className="modal fade">
           <div className="modal-dialog">
             <div className="modal-content">
-              <form>
+              <form onSubmit={this.handlePostEdit}>
                 <div className="modal-header">
                   <h4 className="modal-title">Edit Post</h4>
                   <button
@@ -310,6 +311,9 @@ class Posts extends Component {
                         this.state.activeModalId &&
                         this.state.posts[this.state.index].title.rendered
                       }
+                      value={this.state.title}
+                      name="title"
+                      onChange={this.handleChange}
                       required
                     />
                   </div>
@@ -327,10 +331,9 @@ class Posts extends Component {
                     <label>Post</label>
                     <textarea
                       className="form-control"
-                      value={
-                        this.state.activeModalId &&
-                        this.state.posts[this.state.index].content.rendered
-                      }
+                      value={this.state.content}
+                      name="content"
+                      onChange={this.handleChange}
                       required
                     />
                   </div>
@@ -355,7 +358,11 @@ class Posts extends Component {
                     data-dismiss="modal"
                     value="Cancel"
                   />
-                  <input type="submit" className="btn btn-info" value="Save" />
+                  <input
+                    type="submit"
+                    className="btn btn-info"
+                    value="Update"
+                  />
                 </div>
               </form>
             </div>
@@ -366,7 +373,7 @@ class Posts extends Component {
             <div className="modal-content">
               <form onSubmit={this.handleDeletePost}>
                 <div className="modal-header">
-                  <h4 className="modal-title">Delete Employee</h4>
+                  <h4 className="modal-title">Delete Post</h4>
                   <button
                     type="button"
                     className="close"
@@ -377,7 +384,7 @@ class Posts extends Component {
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete these Records?</p>
+                  <p>Are you sure you want to delete this post?</p>
                   <p className="text-warning">
                     <small>This action cannot be undone.</small>
                   </p>
